@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AMD Developer Hub · 内部统计</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div id="startup" class="startup" role="status">正在连接统计服务…</div>
+  <section id="login-screen" class="login-screen" hidden aria-labelledby="login-title">
+    <div class="login-card">
+      <div class="brand light-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div><strong>AMD 开发者</strong><small>HUB INSIGHTS</small></div></div>
+      <h1 id="login-title">查看 Hub 统计</h1>
+      <p class="login-description">使用团队共用查看账号登录。</p>
+      <form id="login-form" method="post" action="/api/login">
+        <label id="login-username-label" hidden>查看账号<input id="login-username" name="username" type="text" autocomplete="username" readonly></label>
+        <label>查看密码<input id="login-password" name="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary-button" type="submit">登录</button>
+        <p id="login-error" class="error-message" role="alert" hidden></p>
+      </form>
+    </div>
+  </section>
+  <div id="application" hidden>
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div><strong>AMD 开发者</strong><small>HUB INSIGHTS</small></div></div>
+      <p class="side-label">运营观察</p>
+      <nav aria-label="统计导航">
+        <a class="nav-item" href="#overview" data-page="overview"><span aria-hidden="true">▥</span>总览</a>
+        <a class="nav-item" href="#outbound" data-page="outbound"><span aria-hidden="true">↗</span>出站明细</a>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> 团队只读访问<button id="logout-button" type="button">退出登录</button></div>
+    </aside>
+    <main>
+      <header class="page-header">
+        <div><p class="breadcrumb">AMD Developer Hub <span>/</span> 内部统计</p><h1 id="page-title">总览</h1><p id="page-description">有多少次有效访问，又分别去了哪些入口。</p></div>
+        <span class="readonly-badge">只读查看</span>
+      </header>
+      <div id="demo-notice" class="notice demo-notice" hidden role="note">当前为演示环境，显示的数字不是生产统计。</div>
+      <div id="app-error" class="notice error-message" role="alert" hidden></div>
+      <section id="overview-page" aria-label="总览">
+        <form id="overview-form" class="panel query-panel"></form>
+        <section id="overview-report" class="report-area" aria-live="polite"></section>
+        <div class="section-heading"><div><h2>分别看看每类入口</h2><p>每张卡独立选择对象和日期。</p></div></div>
+        <div id="analysis-cards" class="analysis-grid"></div>
+      </section>
+      <section id="outbound-page" aria-label="出站明细" hidden>
+        <a class="back-link" href="#overview">← 返回总览</a>
+        <form id="detail-form" class="panel query-panel"></form>
+        <section id="detail-report" class="report-area" aria-live="polite"></section>
+      </section>
+      <footer class="page-footer"><span>AMD Developer Hub · Hub Insights</span><span>北京时间 · 起止日期均包含在内</span></footer>
+    </main>
+  </div>
+  <noscript><p class="notice">请启用 JavaScript 后登录查看统计。</p></noscript>
+</body>
+</html>

@@ -1,0 +1,512 @@
+{
+  "version": "hub-targets-v1",
+  "origin": "https://hub.amddev.ai/",
+  "counts": {
+    "anchors": 51,
+    "outgoing": 32,
+    "external": 31,
+    "downloads": 1,
+    "ignored": 19,
+    "targets": 20,
+    "queryStripped": 9
+  },
+  "targets": [
+    {
+      "id": "xiaohongshu_profile",
+      "name": "小红书主页",
+      "category": "community",
+      "channel": "小红书",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://www.xiaohongshu.com/user/profile/6a6b08ac0000000013030800",
+      "host": "www.xiaohongshu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "顶栏",
+          "role": ""
+        },
+        {
+          "placement": "页脚",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "zhihu_profile",
+      "name": "知乎主页",
+      "category": "community",
+      "channel": "知乎",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://www.zhihu.com/people/fed0c9f3c397a3cc89d81c9b331393e2",
+      "host": "www.zhihu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "顶栏",
+          "role": ""
+        },
+        {
+          "placement": "分享与交流",
+          "role": ""
+        },
+        {
+          "placement": "技术群区域",
+          "role": ""
+        },
+        {
+          "placement": "页脚",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "bilibili_profile_short",
+      "name": "B站主页 · 短链",
+      "category": "community",
+      "channel": "B站",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://b23.tv/HtwltVK",
+      "host": "b23.tv",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "顶栏",
+          "role": ""
+        },
+        {
+          "placement": "分享与交流",
+          "role": ""
+        },
+        {
+          "placement": "技术群区域",
+          "role": ""
+        },
+        {
+          "placement": "页脚",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "token_factory",
+      "name": "Token Factory",
+      "category": "platform",
+      "channel": "AMD",
+      "topics": [
+        "getting_started",
+        "model_inference"
+      ],
+      "canonical": "https://developer.amd.com.cn/radeon/tokenfactory",
+      "host": "developer.amd.com.cn",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "首屏",
+          "role": ""
+        },
+        {
+          "placement": "平台卡片",
+          "role": ""
+        },
+        {
+          "placement": "页脚",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "radeon_cloud",
+      "name": "Radeon Cloud",
+      "category": "platform",
+      "channel": "AMD",
+      "topics": [
+        "getting_started",
+        "model_inference"
+      ],
+      "canonical": "https://developer.amd.com.cn/radeon",
+      "host": "developer.amd.com.cn",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "首屏",
+          "role": ""
+        },
+        {
+          "placement": "平台卡片",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "radeon_docs",
+      "name": "RC 文档",
+      "category": "platform",
+      "channel": "AMD",
+      "topics": [
+        "getting_started"
+      ],
+      "canonical": "https://amd-aim.github.io/radeon-cloud-docs/introduction",
+      "host": "amd-aim.github.io",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "首屏",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "developer_login",
+      "name": "AMD 开发者登录",
+      "category": "other",
+      "channel": "AMD",
+      "topics": [],
+      "canonical": "https://developer.amd.com.cn/login",
+      "host": "developer.amd.com.cn",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "平台卡片",
+          "role": ""
+        },
+        {
+          "placement": "页脚",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "creative_factory",
+      "name": "Creative Factory",
+      "category": "other",
+      "channel": "AMD",
+      "topics": [
+        "image_video"
+      ],
+      "canonical": "https://h3.oneclickamd.ai/video",
+      "host": "h3.oneclickamd.ai",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "平台卡片",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "gpu_model_guide",
+      "name": "GPU 型号与 gfx 代号",
+      "category": "zhihu_article",
+      "channel": "知乎",
+      "topics": [
+        "gpu_models"
+      ],
+      "canonical": "https://zhuanlan.zhihu.com/p/2067663713826612548",
+      "host": "zhuanlan.zhihu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "w7900_comfyui",
+      "name": "W7900 · MiniMax H3 + ComfyUI",
+      "category": "zhihu_article",
+      "channel": "知乎",
+      "topics": [
+        "image_video",
+        "development"
+      ],
+      "canonical": "https://zhuanlan.zhihu.com/p/2073092993117073920",
+      "host": "zhuanlan.zhihu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "dual_gpu_minimax",
+      "name": "AMD / NV 双卡运行 MiniMax H3",
+      "category": "bilibili_video",
+      "channel": "B站",
+      "topics": [
+        "performance",
+        "image_video"
+      ],
+      "canonical": "https://www.bilibili.com/video/BV1ptb56HEPL",
+      "host": "www.bilibili.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "astra_game_demo",
+      "name": "GPT-6 Astra 游戏实践",
+      "category": "bilibili_video",
+      "channel": "B站",
+      "topics": [
+        "development"
+      ],
+      "canonical": "https://www.bilibili.com/video/BV1abYK6WEYF",
+      "host": "www.bilibili.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "community_qa",
+      "name": "AMD、ROCm 与 AI 社区答疑",
+      "category": "xiaohongshu_content",
+      "channel": "小红书",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://www.xiaohongshu.com/discovery/item/6a8c12290000000028022167",
+      "host": "www.xiaohongshu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        },
+        {
+          "placement": "反馈与支持",
+          "role": "技术支持"
+        }
+      ]
+    },
+    {
+      "id": "qwen_performance",
+      "name": "Qwen3.8-27B 性能实测",
+      "category": "bilibili_video",
+      "channel": "B站",
+      "topics": [
+        "performance",
+        "model_inference"
+      ],
+      "canonical": "https://www.bilibili.com/video/BV1DMbv69EN3",
+      "host": "www.bilibili.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "gpu_llm_guide",
+      "name": "AMD GPU 能否跑大模型",
+      "category": "zhihu_article",
+      "channel": "知乎",
+      "topics": [
+        "model_inference"
+      ],
+      "canonical": "https://zhuanlan.zhihu.com/p/2070243270706435814",
+      "host": "zhuanlan.zhihu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "radeon_player_story",
+      "name": "AMD 显卡玩家实践",
+      "category": "xiaohongshu_content",
+      "channel": "小红书",
+      "topics": [
+        "development"
+      ],
+      "canonical": "https://www.xiaohongshu.com/discovery/item/6a8e4eee00000000200344ff",
+      "host": "www.xiaohongshu.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "学习与社区内容",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "issue_guide",
+      "name": "GitHub 问题提交指南",
+      "category": "other",
+      "channel": "GitHub",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://github.com/AMD-DEVELOPERS/AI-issues/blob/main/.github/ISSUE_TEMPLATE/ai-issue.md",
+      "host": "github.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "反馈与支持",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "xiaohongshu_short",
+      "name": "小红书交流入口 · 短链",
+      "category": "community",
+      "channel": "小红书",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://xhslink.cn/m/48X05yizCbk",
+      "host": "xhslink.cn",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "分享与交流",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "community_qr_download",
+      "name": "保存技术群二维码",
+      "category": "other",
+      "channel": "本站",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "download:community-qr",
+      "host": "hub.amddev.ai",
+      "kind": "download",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "技术群区域",
+          "role": ""
+        }
+      ]
+    },
+    {
+      "id": "rednote_profile",
+      "name": "小红书频道 · Rednote 域名",
+      "category": "community",
+      "channel": "小红书",
+      "topics": [
+        "community_support"
+      ],
+      "canonical": "https://www.rednote.com/user/profile/6a6b08ac0000000013030800",
+      "host": "www.rednote.com",
+      "kind": "external",
+      "reviewed": true,
+      "occurrences": [
+        {
+          "placement": "技术群区域",
+          "role": ""
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": "platform",
+      "name": "平台入口"
+    },
+    {
+      "id": "zhihu_article",
+      "name": "知乎文章"
+    },
+    {
+      "id": "bilibili_video",
+      "name": "B站视频"
+    },
+    {
+      "id": "xiaohongshu_content",
+      "name": "小红书内容"
+    },
+    {
+      "id": "community",
+      "name": "社区主页"
+    },
+    {
+      "id": "other",
+      "name": "其他出口"
+    }
+  ],
+  "topics": [
+    {
+      "id": "getting_started",
+      "name": "开始使用"
+    },
+    {
+      "id": "gpu_models",
+      "name": "显卡与架构"
+    },
+    {
+      "id": "model_inference",
+      "name": "模型推理"
+    },
+    {
+      "id": "image_video",
+      "name": "图像与视频"
+    },
+    {
+      "id": "performance",
+      "name": "性能实测"
+    },
+    {
+      "id": "development",
+      "name": "开发实践"
+    },
+    {
+      "id": "community_support",
+      "name": "社区交流与支持"
+    }
+  ],
+  "provenance": {
+    "derivedFrom": "dashboard-prototype/catalog-rules.json",
+    "baseSha256": "2ca0911281822b8cb896270eb930626905f4b40ee9e07520f2b6952823c43898",
+    "hubCommit": "960ec991a778df02a31a4b1729e5892bf413bb9a",
+    "topicsSource": "Curated from existing Hub link titles; not inferred from visitor behavior."
+  },
+  "source": {
+    "htmlSha256": "c3795472a9fa86da953a84ab451e29ac1095af8ede92d148ee4c4db1bcbce367",
+    "rulesSha256": "72912a4266df3d0d6f83d30e545911e6dacc21317d56d4f14664f24d8c1c2606"
+  }
+}

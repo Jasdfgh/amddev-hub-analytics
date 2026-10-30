@@ -1,0 +1,25 @@
+# Deny by default, then allow only the runtime build inputs.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!LICENSE
+!public/
+!public/**
+!server/
+!server/**
+!shared/
+!shared/catalog.json
+!shared/catalog-rules.json
+!shared/link-map.mjs
+
+# Defense in depth if an unexpected file appears inside an allowed directory.
+**/.git
+**/.git/**
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/node_modules
+**/node_modules/**

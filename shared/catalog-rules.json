@@ -1,0 +1,311 @@
+{
+  "origin": "https://hub.amddev.ai/",
+  "targets": [
+    [
+      "token_factory",
+      "Token Factory",
+      "platform",
+      "AMD",
+      "https://developer.amd.com.cn/radeon/tokenfactory",
+      [],
+      [
+        "getting_started",
+        "model_inference"
+      ]
+    ],
+    [
+      "radeon_cloud",
+      "Radeon Cloud",
+      "platform",
+      "AMD",
+      "https://developer.amd.com.cn/radeon/",
+      [],
+      [
+        "getting_started",
+        "model_inference"
+      ]
+    ],
+    [
+      "radeon_docs",
+      "RC 文档",
+      "platform",
+      "AMD",
+      "https://amd-aim.github.io/radeon-cloud-docs/introduction/",
+      [],
+      [
+        "getting_started"
+      ]
+    ],
+    [
+      "developer_login",
+      "AMD 开发者登录",
+      "other",
+      "AMD",
+      "https://developer.amd.com.cn/login",
+      [],
+      []
+    ],
+    [
+      "creative_factory",
+      "Creative Factory",
+      "other",
+      "AMD",
+      "https://h3.oneclickamd.ai/video",
+      [],
+      [
+        "image_video"
+      ]
+    ],
+    [
+      "gpu_model_guide",
+      "GPU 型号与 gfx 代号",
+      "zhihu_article",
+      "知乎",
+      "https://zhuanlan.zhihu.com/p/2067663713826612548",
+      [],
+      [
+        "gpu_models"
+      ]
+    ],
+    [
+      "w7900_comfyui",
+      "W7900 · MiniMax H3 + ComfyUI",
+      "zhihu_article",
+      "知乎",
+      "https://zhuanlan.zhihu.com/p/2073092993117073920",
+      [],
+      [
+        "image_video",
+        "development"
+      ]
+    ],
+    [
+      "dual_gpu_minimax",
+      "AMD / NV 双卡运行 MiniMax H3",
+      "bilibili_video",
+      "B站",
+      "https://www.bilibili.com/video/BV1ptb56HEPL/",
+      [],
+      [
+        "performance",
+        "image_video"
+      ]
+    ],
+    [
+      "astra_game_demo",
+      "GPT-6 Astra 游戏实践",
+      "bilibili_video",
+      "B站",
+      "https://www.bilibili.com/video/BV1abYK6WEYF/",
+      [],
+      [
+        "development"
+      ]
+    ],
+    [
+      "community_qa",
+      "AMD、ROCm 与 AI 社区答疑",
+      "xiaohongshu_content",
+      "小红书",
+      "https://www.xiaohongshu.com/discovery/item/6a8c12290000000028022167",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "qwen_performance",
+      "Qwen3.8-27B 性能实测",
+      "bilibili_video",
+      "B站",
+      "https://www.bilibili.com/video/BV1DMbv69EN3/",
+      [],
+      [
+        "performance",
+        "model_inference"
+      ]
+    ],
+    [
+      "gpu_llm_guide",
+      "AMD GPU 能否跑大模型",
+      "zhihu_article",
+      "知乎",
+      "https://zhuanlan.zhihu.com/p/2070243270706435814",
+      [],
+      [
+        "model_inference"
+      ]
+    ],
+    [
+      "radeon_player_story",
+      "AMD 显卡玩家实践",
+      "xiaohongshu_content",
+      "小红书",
+      "https://www.xiaohongshu.com/discovery/item/6a8e4eee00000000200344ff",
+      [],
+      [
+        "development"
+      ]
+    ],
+    [
+      "issue_guide",
+      "GitHub 问题提交指南",
+      "other",
+      "GitHub",
+      "https://github.com/AMD-DEVELOPERS/AI-issues/blob/main/.github/ISSUE_TEMPLATE/ai-issue.md",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "xiaohongshu_profile",
+      "小红书主页",
+      "community",
+      "小红书",
+      "https://www.xiaohongshu.com/user/profile/6a6b08ac0000000013030800",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "xiaohongshu_short",
+      "小红书交流入口 · 短链",
+      "community",
+      "小红书",
+      "https://xhslink.cn/m/48X05yizCbk",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "rednote_profile",
+      "小红书频道 · Rednote 域名",
+      "community",
+      "小红书",
+      "https://www.rednote.com/user/profile/6a6b08ac0000000013030800",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "zhihu_profile",
+      "知乎主页",
+      "community",
+      "知乎",
+      "https://www.zhihu.com/people/fed0c9f3c397a3cc89d81c9b331393e2",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "bilibili_profile_short",
+      "B站主页 · 短链",
+      "community",
+      "B站",
+      "https://b23.tv/HtwltVK",
+      [],
+      [
+        "community_support"
+      ]
+    ],
+    [
+      "community_qr_download",
+      "保存技术群二维码",
+      "other",
+      "本站",
+      "download:community-qr",
+      [],
+      [
+        "community_support"
+      ]
+    ]
+  ],
+  "version": "hub-targets-v1",
+  "categories": {
+    "platform": "平台入口",
+    "zhihu_article": "知乎文章",
+    "bilibili_video": "B站视频",
+    "xiaohongshu_content": "小红书内容",
+    "community": "社区主页",
+    "other": "其他出口"
+  },
+  "topics": {
+    "getting_started": "开始使用",
+    "gpu_models": "显卡与架构",
+    "model_inference": "模型推理",
+    "image_video": "图像与视频",
+    "performance": "性能实测",
+    "development": "开发实践",
+    "community_support": "社区交流与支持"
+  },
+  "queryPolicies": {
+    "developer_login": {
+      "values": {
+        "returnUrl": [
+          "/"
+        ]
+      }
+    },
+    "community_qr_download": {
+      "ignore": [
+        "v"
+      ]
+    },
+    "dual_gpu_minimax": {
+      "ignore": [
+        "share_source",
+        "vd_source"
+      ]
+    },
+    "astra_game_demo": {
+      "ignore": [
+        "share_source",
+        "vd_source"
+      ]
+    },
+    "community_qa": {
+      "ignore": [
+        "source",
+        "xhsshare",
+        "xsec_source",
+        "xsec_token"
+      ]
+    },
+    "qwen_performance": {
+      "ignore": [
+        "share_source",
+        "vd_source"
+      ]
+    },
+    "radeon_player_story": {
+      "ignore": [
+        "source",
+        "xhsshare",
+        "xsec_source",
+        "xsec_token"
+      ]
+    }
+  },
+  "trackingQueryKeys": [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+    "utm_id",
+    "gclid",
+    "fbclid",
+    "msclkid"
+  ],
+  "provenance": {
+    "derivedFrom": "dashboard-prototype/catalog-rules.json",
+    "baseSha256": "2ca0911281822b8cb896270eb930626905f4b40ee9e07520f2b6952823c43898",
+    "hubCommit": "960ec991a778df02a31a4b1729e5892bf413bb9a",
+    "topicsSource": "Curated from existing Hub link titles; not inferred from visitor behavior."
+  }
+}
