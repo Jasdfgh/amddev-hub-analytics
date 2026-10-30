@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "generator": "hub-analytics-public-export-v1",
-  "generatedAt": "2026-10-30T10:53:47.731Z",
+  "generatedAt": "2026-10-30T11:44:06.569Z",
   "reviewStatus": "exported-for-publication-review",
-  "contentSha256": "9df002b2977cdac7d7704fddf9a09810b6564c8e7b2f7aab8f83e66bd238f480",
+  "contentSha256": "80183fac650ad851884c6171d1ab881dc1223910af3426c7c0c3900192fb8f23",
   "fileCount": 23,
   "files": [
     {
@@ -78,8 +78,8 @@
     },
     {
       "path": "server/collector.mjs",
-      "bytes": 9479,
-      "sha256": "d6fb392bd4a07cfdcef5e7071dcc9f42fd0cbce70ef14a9486dd9db9c874f4aa"
+      "bytes": 10617,
+      "sha256": "ed63d58cea89496fa4b476ecad1c6af431e60fee72c9556117d3a91810657505"
     },
     {
       "path": "server/config.mjs",
@@ -103,8 +103,8 @@
     },
     {
       "path": "server/umami-reader.mjs",
-      "bytes": 9533,
-      "sha256": "aaee4d698852ca202539a6992408bb09dd99cdaf46aab15678d9a6875b3a4916"
+      "bytes": 10080,
+      "sha256": "c87cf96c4fd5f38c62d54b1a3929cb0fec4a1e0fe88c63c3e0d3f39614fd39c6"
     },
     {
       "path": "shared/catalog-rules.json",

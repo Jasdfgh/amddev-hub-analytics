@@ -13,6 +13,21 @@ export function createCollector({ config, catalog, rules, reader, receipts, fetc
   const key=Buffer.from(config.tokenSecret,'base64url');
   if(key.length!==32)throw new Error('COLLECTOR_TOKEN_SECRET must encode exactly 32 bytes.');
   const targets=new Map(catalog.targets.map(t=>[t.id,t]));
+  const reviewedIdentities=new Map(catalog.targets.map(known=>{
+    const canonicals=new Set([known.canonical]),hosts=new Set([known.host]);
+    const rule=rules.targets.find(row=>row[0]===known.id);
+    for(const value of rule?[rule[4],...(rule[5]||[])]:[]){
+      const href=value.startsWith('download:')?value.slice(9):value;
+      try{
+        const link={href,download:known.kind==='download',attrs:{}};
+        const mapped=mapLink(link,rules),variant=canonicalTarget(href,{origin:rules.origin,download:link.download});
+        if(mapped?.id===known.id&&mapped.reviewed&&mapped.kind===known.kind&&variant){
+          canonicals.add(variant.key);hosts.add(mapped.host);
+        }
+      }catch{/* Invalid/unreviewed variants never widen the accepted identity. */}
+    }
+    return [known.id,{canonicals,hosts}];
+  }));
   const active=new Map();
   let inFlight=0;
   const rate=new Map();
@@ -60,7 +75,11 @@ export function createCollector({ config, catalog, rules, reader, receipts, fetc
     if(!ID.test(body.targetId||'')||typeof body.unreviewed!=='boolean')fail(400,'invalid_target');
     const known=targets.get(body.targetId);
     if(known){
-      if(body.targetCanonical!==known.canonical||body.targetHost!==known.host||body.type!==(known.kind==='download'?'download_click':'outbound_click'))fail(400,'target_mismatch');
+      // Current clients report the primary canonical plus the actual alias host;
+      // cached pre-migration clients may still report an explicitly reviewed old
+      // canonical. Both normalize to the authoritative catalog metadata below.
+      const identity=reviewedIdentities.get(known.id);
+      if(!identity.canonicals.has(body.targetCanonical)||!identity.hosts.has(body.targetHost)||body.type!==(known.kind==='download'?'download_click':'outbound_click'))fail(400,'target_mismatch');
       return {...clean,targetId:known.id,targetHost:known.host,targetCanonical:known.canonical,unreviewed:false};
     }
     // A new ordinary destination may be reported under the shared stable-ID

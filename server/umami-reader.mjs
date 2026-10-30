@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { readFileSync } from 'node:fs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SQL_UUID = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
@@ -105,10 +106,12 @@ function safeCanonical(value) {
   } catch { return null; }
 }
 
-export function createUmamiReader({ connectionString, websiteId, hostname = 'hub.amddev.ai' }) {
+export function createUmamiReader({ connectionString, websiteId, hostname = 'hub.amddev.ai', catalog }) {
   if (typeof connectionString !== 'string' || !connectionString) throw new Error('A read-only database connection is required.');
   if (!UUID.test(websiteId || '')) throw new Error('A valid fixed Umami website ID is required.');
   if (!/^[a-z0-9.-]{1,100}$/.test(hostname)) throw new Error('A fixed lowercase hostname is required.');
+  const knownCatalog = catalog ?? JSON.parse(readFileSync(new URL('../shared/catalog.json', import.meta.url), 'utf8'));
+  const knownTargetIds = new Set(knownCatalog.targets.map(target => target.id));
   const pool = new pg.Pool({ connectionString, max: 4, application_name: 'hub-analytics-readonly',
     connectionTimeoutMillis: 5000, statement_timeout: 15000, idle_in_transaction_session_timeout: 15000,
     options: '-c default_transaction_read_only=on' });
@@ -148,6 +151,10 @@ export function createUmamiReader({ connectionString, websiteId, hostname = 'hub
       const rows = await read(DISCOVER_SQL, [websiteId, hostname]);
       const targets = [];
       for (const row of rows) {
+        // Known IDs already have authoritative catalog metadata. Their historic
+        // URLs can legitimately differ after a reviewed migration; discovery
+        // must neither replace that metadata nor block reports on its variants.
+        if (knownTargetIds.has(row.target_id)) continue;
         if (Number(row.canonical_variants) > 1) throw new Error('Conflicting target canonical metadata; administrator review is required.');
         const canonical = safeCanonical(row.target_canonical);
         if (!canonical || typeof row.target_host !== 'string' || !/^[a-zA-Z0-9.[\]:-]{1,255}$/.test(row.target_host)) continue;
