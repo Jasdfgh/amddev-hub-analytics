@@ -209,7 +209,7 @@
     },
     {
       "id": "gpu_model_guide",
-      "name": "GPU 型号与 gfx 代号",
+      "name": "一文讲清 AMD GPU 显卡型号及其代号 gfx（建议收藏）",
       "category": "zhihu_article",
       "channel": "知乎",
       "topics": [
@@ -228,7 +228,7 @@
     },
     {
       "id": "w7900_comfyui",
-      "name": "W7900 · MiniMax H3 + ComfyUI",
+      "name": "手把手教你在 AMD Radeon PRO W7900 上丝滑运行 MiniMax H3 + ComfyUI 音视频生成",
       "category": "zhihu_article",
       "channel": "知乎",
       "topics": [
@@ -248,7 +248,7 @@
     },
     {
       "id": "dual_gpu_minimax",
-      "name": "AMD / NV 双卡运行 MiniMax H3",
+      "name": "AMD / NV 本地双卡加速 MiniMax H3：Ulysses 序列并行让效率双倍提升",
       "category": "bilibili_video",
       "channel": "B站",
       "topics": [
@@ -268,7 +268,7 @@
     },
     {
       "id": "astra_game_demo",
-      "name": "GPT-6 Astra 游戏实践",
+      "name": "用 GPT-6 Astra 生成游戏：FPS / 战略 / 格斗 / 传奇，可直接体验",
       "category": "bilibili_video",
       "channel": "B站",
       "topics": [
@@ -287,7 +287,7 @@
     },
     {
       "id": "community_qa",
-      "name": "AMD、ROCm 与 AI 社区答疑",
+      "name": "关于AMD显卡和ROCM和AI模型， 你好奇哪些问题？",
       "category": "xiaohongshu_content",
       "channel": "小红书",
       "topics": [
@@ -330,7 +330,7 @@
     },
     {
       "id": "gpu_llm_guide",
-      "name": "AMD GPU 能否跑大模型",
+      "name": "AMD GPU 到底 能不能跑大模型？",
       "category": "zhihu_article",
       "channel": "知乎",
       "topics": [
@@ -349,7 +349,7 @@
     },
     {
       "id": "radeon_player_story",
-      "name": "AMD 显卡玩家实践",
+      "name": "AMD 显卡玩家 竟然这样用？",
       "category": "xiaohongshu_content",
       "channel": "小红书",
       "topics": [
@@ -507,6 +507,6 @@
   },
   "source": {
     "htmlSha256": "c3795472a9fa86da953a84ab451e29ac1095af8ede92d148ee4c4db1bcbce367",
-    "rulesSha256": "72912a4266df3d0d6f83d30e545911e6dacc21317d56d4f14664f24d8c1c2606"
+    "rulesSha256": "96a10406f204250c020846feae31d5c339fc4f262737a7186a28fbc2b6371a18"
   }
 }

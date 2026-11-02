@@ -58,7 +58,7 @@
     ],
     [
       "gpu_model_guide",
-      "GPU 型号与 gfx 代号",
+      "一文讲清 AMD GPU 显卡型号及其代号 gfx（建议收藏）",
       "zhihu_article",
       "知乎",
       "https://zhuanlan.zhihu.com/p/2067663713826612548",
@@ -69,7 +69,7 @@
     ],
     [
       "w7900_comfyui",
-      "W7900 · MiniMax H3 + ComfyUI",
+      "手把手教你在 AMD Radeon PRO W7900 上丝滑运行 MiniMax H3 + ComfyUI 音视频生成",
       "zhihu_article",
       "知乎",
       "https://zhuanlan.zhihu.com/p/2073092993117073920",
@@ -81,7 +81,7 @@
     ],
     [
       "dual_gpu_minimax",
-      "AMD / NV 双卡运行 MiniMax H3",
+      "AMD / NV 本地双卡加速 MiniMax H3：Ulysses 序列并行让效率双倍提升",
       "bilibili_video",
       "B站",
       "https://www.bilibili.com/video/BV1ptb56HEPL/",
@@ -93,7 +93,7 @@
     ],
     [
       "astra_game_demo",
-      "GPT-6 Astra 游戏实践",
+      "用 GPT-6 Astra 生成游戏：FPS / 战略 / 格斗 / 传奇，可直接体验",
       "bilibili_video",
       "B站",
       "https://www.bilibili.com/video/BV1abYK6WEYF/",
@@ -104,7 +104,7 @@
     ],
     [
       "community_qa",
-      "AMD、ROCm 与 AI 社区答疑",
+      "关于AMD显卡和ROCM和AI模型， 你好奇哪些问题？",
       "xiaohongshu_content",
       "小红书",
       "https://www.xiaohongshu.com/discovery/item/6a8c12290000000028022167",
@@ -127,7 +127,7 @@
     ],
     [
       "gpu_llm_guide",
-      "AMD GPU 能否跑大模型",
+      "AMD GPU 到底 能不能跑大模型？",
       "zhihu_article",
       "知乎",
       "https://zhuanlan.zhihu.com/p/2070243270706435814",
@@ -138,7 +138,7 @@
     ],
     [
       "radeon_player_story",
-      "AMD 显卡玩家实践",
+      "AMD 显卡玩家 竟然这样用？",
       "xiaohongshu_content",
       "小红书",
       "https://www.xiaohongshu.com/discovery/item/6a8e4eee00000000200344ff",

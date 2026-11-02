@@ -6,6 +6,7 @@ const numeric = value => typeof value === 'number' && Number.isFinite(value);
 const number = value => numeric(value) ? value.toLocaleString('zh-CN') : '暂无数据';
 const shortDate = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')) ? String(value).replaceAll('-', '.') : '—';
 const storageKey = 'amdHubAnalyticsQueryV1';
+const storageVersion = 2;
 const cardDefaults = [
   { id:'platform', title:'平台链接' },
   { id:'zhihu_article', title:'知乎文章' },
@@ -13,11 +14,11 @@ const cardDefaults = [
   { id:'xiaohongshu_content', title:'小红书内容' }
 ];
 const presetOptions = [['last7','近 7 天'],['thisweek','本周'],['lastweek','上周'],['thismonth','本月'],['lastmonth','上月']];
-const emptyQuery = () => ({ ...presetRange('last7'), categories:[], topics:[], targets:[], q:'', compare:true, grain:'day' });
+const emptyQuery = () => ({ ...presetRange('last7'), categories:[], compare:true, grain:'day' });
 let state = {
   overview:emptyQuery(),
   cards:cardDefaults.map(item => ({ ...emptyQuery(), categories:[item.id], expanded:false })),
-  detail:{ ...emptyQuery(), includeZero:false, minClicks:0, sort:'date', direction:'desc', page:1, pageSize:25 },
+  detail:{ ...emptyQuery(), targets:[], q:'', includeZero:true, minClicks:0, sort:'date', direction:'desc', page:1, pageSize:25 },
   overviewScroll:0
 };
 let catalog = null;
@@ -32,38 +33,44 @@ const charts = new Map();
 
 function restoreQuery(raw, fallback) {
   if (!raw || typeof raw !== 'object') return fallback;
-  try {
-    const dates = range(raw.start, raw.end);
-    const output = { ...fallback, ...dates };
-    for (const key of ['categories','topics','targets']) output[key] = Array.isArray(raw[key]) ? raw[key].filter(item => typeof item === 'string').slice(0, 200) : fallback[key];
+  const output = { ...fallback };
+  try { Object.assign(output, range(raw.start, raw.end)); } catch { /* Keep valid filters when only the saved dates are invalid. */ }
+  output.categories = Array.isArray(raw.categories) ? [...new Set(raw.categories.filter(item => typeof item === 'string'))].slice(0, 200) : fallback.categories;
+  output.compare = raw.compare !== false;
+  output.grain = ['day','week','month'].includes(raw.grain) ? raw.grain : 'day';
+  if ('expanded' in fallback) output.expanded = raw.expanded === true;
+  // Only the detail page may retain a specific title or text search.
+  if ('page' in fallback) {
+    output.targets = Array.isArray(raw.targets) ? [...new Set(raw.targets.filter(item => typeof item === 'string'))].slice(0, 200) : [];
     output.q = typeof raw.q === 'string' ? raw.q.slice(0, 256) : '';
-    output.compare = raw.compare !== false;
-    output.grain = ['day','week','month'].includes(raw.grain) ? raw.grain : 'day';
-    if ('expanded' in fallback) output.expanded = raw.expanded === true;
-    if ('page' in fallback) {
-      output.includeZero = raw.includeZero === true;
-      output.minClicks = Number.isSafeInteger(raw.minClicks) && raw.minClicks >= 0 ? raw.minClicks : 0;
-      output.sort = ['date','clicks','delta','percent','name'].includes(raw.sort) ? raw.sort : 'date';
-      output.direction = raw.direction === 'asc' ? 'asc' : 'desc';
-      output.page = Number.isSafeInteger(raw.page) && raw.page > 0 ? raw.page : 1;
-      output.pageSize = raw.pageSize === 50 ? 50 : 25;
-    }
-    return output;
-  } catch { return fallback; }
+    output.includeZero = raw.includeZero !== false;
+    output.minClicks = Number.isSafeInteger(raw.minClicks) && raw.minClicks >= 0 ? raw.minClicks : 0;
+    output.sort = ['date','clicks','delta','percent','name'].includes(raw.sort) ? raw.sort : 'date';
+    output.direction = raw.direction === 'asc' ? 'asc' : 'desc';
+    output.page = Number.isSafeInteger(raw.page) && raw.page > 0 ? raw.page : 1;
+    output.pageSize = raw.pageSize === 50 ? 50 : 25;
+  }
+  return output;
 }
 
 try {
   const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
-  if (saved?.version === 1) {
+  if (saved?.version === 1 || saved?.version === storageVersion) {
     state.overview = restoreQuery(saved.overview, state.overview);
+    state.overview.categories = [];
     state.cards = state.cards.map((card, index) => restoreQuery(saved.cards?.[index], card));
     state.detail = restoreQuery(saved.detail, state.detail);
+    if (saved.version === 1) {
+      state.detail.includeZero = true;
+      state.detail.minClicks = 0;
+      state.detail.page = 1;
+    }
     state.overviewScroll = Math.max(0, Number(saved.overviewScroll) || 0);
   }
 } catch { /* Storage is optional; queries remain independent in memory. */ }
 
 function saveState() {
-  try { sessionStorage.setItem(storageKey, JSON.stringify({ version:1, ...state })); }
+  try { sessionStorage.setItem(storageKey, JSON.stringify({ version:storageVersion, ...state })); }
   catch { /* No data or credentials are stored here. */ }
 }
 
@@ -159,8 +166,11 @@ function outputFor(scope) { return $(scope === 'overview' ? 'overview-report' : 
 function queryString(query, daily = false, wholeHub = false) {
   const params = new URLSearchParams({ start:query.start, end:query.end, compare:String(query.compare) });
   if (!wholeHub) {
-    for (const name of ['categories','topics','targets']) if (query[name]?.length) params.set(name, query[name].join(','));
-    if (query.q) params.set('q', query.q);
+    if (query.categories?.length) params.set('categories', query.categories.join(','));
+    if (daily) {
+      if (query.targets?.length) params.set('targets', query.targets.join(','));
+      if (query.q) params.set('q', query.q);
+    }
   }
   if (daily) {
     for (const name of ['minClicks','includeZero','sort','direction','page','pageSize']) params.set(name, String(query[name]));
@@ -186,18 +196,41 @@ function dateMarkup(scope, query, { daily = false } = {}) {
 }
 
 function pickerMarkup(name, label, items, selected) {
-  return '<details class="picker" data-picker="' + name + '"><summary><span>' + escape(label) + '</span></summary><div class="picker-options">' +
+  return '<details class="picker" data-picker="' + name + '"><summary aria-label="' + escape(label) + '"><span>' + escape(label) + '</span></summary><div class="picker-options">' +
     '<button type="button" data-clear-picker="' + name + '">全部' + escape(label) + '</button>' +
-    (items.length ? items.map(item => '<label><input type="checkbox" name="' + name + '" value="' + escape(item.id) + '"' + (selected.includes(item.id) ? ' checked' : '') + '><span>' + escape(item.name) + '</span></label>').join('') : '<span class="picker-empty">暂无可选' + escape(label) + '</span>') +
+    (items.length ? items.map(item => '<label><input type="checkbox" name="' + name + '" value="' + escape(item.id) + '"' + (selected.includes(item.id) ? ' checked' : '') + '><span title="' + escape(item.name) + '">' + escape(item.name) + '</span></label>').join('') : '<span class="picker-empty">暂无可选' + escape(label) + '</span>') +
     '<button type="button" class="picker-done" data-close-picker>完成选择</button></div></details>';
 }
 
-function objectMarkup(query) {
-  return '<fieldset class="object-row"><legend>分析对象</legend>' +
-    pickerMarkup('categories', '类型', catalog.categories, query.categories) +
-    pickerMarkup('topics', '话题', catalog.topics, query.topics) +
-    pickerMarkup('targets', '目标', catalog.targets, query.targets) +
+function titlesForCategories(categories) {
+  return catalog.targets.filter(target => !categories.length || categories.includes(target.category));
+}
+
+function matchingTitles(categories, selected) {
+  const available = new Set(titlesForCategories(categories).map(target => target.id));
+  return selected.filter(id => available.has(id));
+}
+
+function objectMarkup(query, detail = false) {
+  return '<fieldset class="object-row"><legend>' + (detail ? '内容类型 → 具体标题' : '内容类型') + '</legend>' +
+    pickerMarkup('categories', '内容类型', catalog.categories, query.categories) +
+    (detail ? pickerMarkup('targets', '标题', titlesForCategories(query.categories), query.targets) : '') +
     '</fieldset>';
+}
+
+function refreshTitlePicker(form, selected = null) {
+  const categories = [...form.querySelectorAll('input[name="categories"]:checked')].map(input => input.value);
+  const previous = selected ?? [...form.querySelectorAll('input[name="targets"]:checked')].map(input => input.value);
+  const next = matchingTitles(categories, previous);
+  form.querySelector('[data-picker="targets"]').outerHTML = pickerMarkup('targets', '标题', titlesForCategories(categories), next);
+  return next;
+}
+
+function normalizeCatalogSelections() {
+  const categories = new Set(catalog.categories.map(category => category.id));
+  for (const query of [...state.cards, state.detail]) query.categories = query.categories.filter(id => categories.has(id));
+  state.detail.targets = matchingTitles(state.detail.categories, state.detail.targets);
+  saveState();
 }
 
 function setupForms() {
@@ -212,25 +245,28 @@ function setupForms() {
       '<div class="card-date-heading">' + presetMarkup(true) + '<button class="text-button" type="button" data-copy-dates>复制总览日期</button></div>' +
       dateMarkup(scope, query) + '</form><div class="card-report" id="' + scope + '-report" aria-live="polite"></div></article>';
   }).join('');
-  $('detail-form').innerHTML = '<div class="query-heading"><div><strong>每日 × 目标</strong><small>筛选结果独立于总览</small></div>' + presetMarkup() + '</div>' +
-    '<div class="detail-filters">' + objectMarkup(state.detail) +
-    '<label class="field-label">内容关键词<input type="search" name="q" maxlength="256" placeholder="搜索目标名称或链接" value="' + escape(state.detail.q) + '"></label></div>' +
+  $('detail-form').innerHTML = '<div class="query-heading"><div><strong>内容类型 → 具体标题</strong><small>查看每日点击，默认包含 0 点击内容</small></div>' + presetMarkup() + '</div>' +
+    '<div class="detail-filters">' + objectMarkup(state.detail, true) +
+    '<label class="field-label">标题搜索<input type="search" name="q" maxlength="256" placeholder="搜索文章、视频或入口名称" value="' + escape(state.detail.q) + '"></label></div>' +
     dateMarkup('detail', state.detail, { daily:true }) +
     '<div class="detail-options"><label class="checkbox-label"><input type="checkbox" name="positiveOnly"' + (!state.detail.includeZero ? ' checked' : '') + '>只看有点击的记录</label>' +
     '<label class="field-label">最低点击<input type="number" name="minClicks" min="0" step="1" value="' + state.detail.minClicks + '"></label>' +
-    '<label class="field-label">排序<select name="sort">' + [['date','日期'],['clicks','有效点击'],['delta','增减量'],['percent','变化比例'],['name','目标名称']].map(item => '<option value="' + item[0] + '"' + (state.detail.sort === item[0] ? ' selected' : '') + '>' + item[1] + '</option>').join('') + '</select></label>' +
+    '<label class="field-label">排序<select name="sort">' + [['date','日期'],['clicks','有效点击'],['delta','增减量'],['percent','变化比例'],['name','内容标题']].map(item => '<option value="' + item[0] + '"' + (state.detail.sort === item[0] ? ' selected' : '') + '>' + item[1] + '</option>').join('') + '</select></label>' +
     '<label class="field-label">顺序<select name="direction"><option value="desc"' + (state.detail.direction === 'desc' ? ' selected' : '') + '>从高到低 / 从新到旧</option><option value="asc"' + (state.detail.direction === 'asc' ? ' selected' : '') + '>从低到高 / 从旧到新</option></select></label>' +
     '<label class="field-label">每页<select name="pageSize"><option value="25"' + (state.detail.pageSize === 25 ? ' selected' : '') + '>25 条</option><option value="50"' + (state.detail.pageSize === 50 ? ' selected' : '') + '>50 条</option></select></label></div>';
   for (const scope of ['overview', ...state.cards.map((_, i) => 'card-' + i), 'detail']) bindForm(scope);
 }
 
 function updatePickerLabels(form) {
-  const labels = { categories:'类型', topics:'话题', targets:'目标' };
+  const labels = { categories:'内容类型', targets:'标题' };
   for (const details of form.querySelectorAll('.picker')) {
     const name = details.dataset.picker;
     const checked = [...details.querySelectorAll('input:checked')];
     const label = checked.length === 0 ? '全部' + labels[name] : checked.length === 1 ? checked[0].nextElementSibling.textContent : checked.length + ' 个' + labels[name];
-    details.querySelector('summary span').textContent = label;
+    const summary = details.querySelector('summary span');
+    summary.textContent = label;
+    summary.title = checked.length ? checked.map(input => input.nextElementSibling.textContent).join('、') : label;
+    details.querySelector('summary').setAttribute('aria-label', labels[name] + '：' + summary.title);
   }
 }
 
@@ -247,10 +283,11 @@ function readForm(scope, resetPage = true) {
   const dates = range(String(data.get('start') || ''), String(data.get('end') || ''));
   const query = { ...existing, ...dates, compare:data.get('compare') === 'true' };
   if (scope !== 'overview') {
-    for (const key of ['categories','topics','targets']) query[key] = data.getAll(key).map(String);
-    query.q = String(data.get('q') || '').trim();
+    query.categories = data.getAll('categories').map(String);
   }
   if (scope === 'detail') {
+    query.targets = matchingTitles(query.categories, data.getAll('targets').map(String));
+    query.q = String(data.get('q') || '').trim();
     const minimum = Number(data.get('minClicks'));
     if (!Number.isSafeInteger(minimum) || minimum < 0) throw new Error('最低点击应为大于或等于 0 的整数。');
     query.includeZero = !data.has('positiveOnly');
@@ -274,6 +311,10 @@ function applyForm(scope) {
     const query = readForm(scope);
     setQuery(scope, query);
     const form = formFor(scope);
+    if (scope === 'detail') {
+      refreshTitlePicker(form, query.targets);
+      updatePickerLabels(form);
+    }
     formError(scope, null);
     form.querySelector('.form-dirty').hidden = true;
     form.querySelectorAll('details').forEach(details => { details.open = false; });
@@ -289,8 +330,9 @@ function bindForm(scope) {
   form.addEventListener('submit', event => { event.preventDefault(); applyForm(scope); });
   form.addEventListener('input', () => { form.querySelector('.form-dirty').hidden = false; });
   form.addEventListener('change', event => {
+    if (scope === 'detail' && event.target.name === 'categories') refreshTitlePicker(form);
     updatePickerLabels(form);
-    if (['grain','compare','sort','direction','pageSize'].includes(event.target.name)) applyForm(scope);
+    if (['grain','compare','sort','direction','pageSize','positiveOnly'].includes(event.target.name)) applyForm(scope);
     else form.querySelector('.form-dirty').hidden = false;
   });
   form.addEventListener('click', event => {
@@ -306,6 +348,7 @@ function bindForm(scope) {
     }
     if (clear) {
       clear.closest('details').querySelectorAll('input').forEach(input => { input.checked = false; });
+      if (scope === 'detail' && clear.dataset.clearPicker === 'categories') refreshTitlePicker(form);
       updatePickerLabels(form);
       form.querySelector('.form-dirty').hidden = false;
     }
@@ -321,8 +364,7 @@ function bindForm(scope) {
 
 function updateCardTitle(index) {
   const query = state.cards[index];
-  const title = query.targets.length === 1 ? targetById.get(query.targets[0])?.name || '目标分析' :
-    query.categories.length === 1 ? categoryById.get(query.categories[0]) || cardDefaults[index].title :
+  const title = query.categories.length === 1 ? categoryById.get(query.categories[0]) || cardDefaults[index].title :
     query.categories.length > 1 ? '多类型分析' : '全部出站';
   $('card-' + index + '-title').textContent = title;
 }
@@ -427,19 +469,19 @@ function renderOverview(report, query) {
 
 function renderCard(index, report, query) {
   const scope = 'card-' + index;
-  const top = report.top.slice(0, query.targets.length === 1 ? 1 : 3);
+  const top = report.top.slice(0, 3);
   const ranks = top.length ? top.map((row, rank) => {
     const target = targetById.get(row.targetId);
     const delta = change(row.count, row.previousCount, comparable(report, query));
-    return '<button type="button" class="rank-item" data-rank-card="' + index + '" data-target="' + escape(row.targetId) + '">' +
-      '<div class="rank-line"><span class="rank-name"><b>' + String(rank + 1).padStart(2, '0') + '</b>' + escape(target?.name || '未命名目标') + '</span><span class="rank-count">' + number(row.count) + '</span></div>' +
-      (query.compare ? '<div class="rank-prior"><span>同目标上期 ' + number(row.previousCount) + '</span><span class="' + delta.tone + '">' + delta.text + '</span></div>' : '') + '</button>';
+    return '<button type="button" class="rank-item" data-rank-card="' + index + '" data-target="' + escape(row.targetId) + '" title="' + escape(target?.name || '未命名内容') + '">' +
+      '<div class="rank-line"><span class="rank-name"><b>' + String(rank + 1).padStart(2, '0') + '</b>' + escape(target?.name || '未命名内容') + '</span><span class="rank-count">' + number(row.count) + '</span></div>' +
+      (query.compare ? '<div class="rank-prior"><span>同标题上期 ' + number(row.previousCount) + '</span><span class="' + delta.tone + '">' + delta.text + '</span></div>' : '') + '</button>';
   }).join('') : '<div class="empty-state">' + (report.coverage?.status === 'none' ? '这个区间暂无数据' : '没有匹配的点击记录') + '</div>';
   outputFor(scope).innerHTML = coverageMarkup(report, query.compare) +
     '<div class="card-summary"><div><span>有效出站合计</span><div class="metric-value' + (numeric(report.summary.clicks) ? '' : ' missing') + '">' + number(report.summary.clicks) + '</div></div>' +
     '<div class="metric-comparison">' + comparisonMarkup(report.summary.clicks, report.summary.previousClicks, report, query) + '</div></div>' +
     chartMarkup(scope, reportSeries(report), seriesConfig(false, query.compare), query) +
-    '<section class="ranking"><div class="ranking-heading"><h3>' + (query.targets.length === 1 ? '所选目标' : '本期 TOP 3') + '</h3><span>按本期有效点击排名</span></div>' + ranks + '</section>';
+    '<section class="ranking"><div class="ranking-heading"><h3>本期 TOP 3</h3><span>点击标题查看明细</span></div>' + ranks + '</section>';
 }
 
 function signed(value) { return numeric(value) ? (value > 0 ? '+' : value < 0 ? '−' : '') + Math.abs(value).toLocaleString('zh-CN') : '—'; }
@@ -457,7 +499,7 @@ function renderDetail(report, query) {
     const delta = allowed ? row.delta : null;
     const percent = allowed && numeric(row.percent) ? signed(Math.round(row.percent * 10) / 10) + '%' :
       !query.compare ? '—' : allowed && row.previousCount === 0 ? '上期为 0' : '暂无完整对比';
-    return '<tr><td>' + shortDate(row.date) + '</td><td><strong>' + escape(target?.name || '未命名目标') + '</strong><small>' + escape([category, target?.channel].filter(Boolean).join(' · ')) + '</small></td>' +
+    return '<tr><td>' + shortDate(row.date) + '</td><td class="content-title"><strong title="' + escape(target?.name || '未命名内容') + '">' + escape(target?.name || '未命名内容') + '</strong><small>' + escape([category, target?.channel].filter(Boolean).join(' · ')) + '</small></td>' +
       '<td class="numeric">' + number(row.count) + '</td><td class="numeric">' + (query.compare ? number(row.previousCount) : '—') +
       (query.compare && row.previousDate ? '<small>' + shortDate(row.previousDate) + '</small>' : '') + '</td>' +
       '<td class="numeric">' + signed(delta) + '</td><td class="numeric ' + (numeric(delta) && delta > 0 ? 'up' : numeric(delta) && delta < 0 ? 'down' : 'neutral') + '">' + percent + '</td></tr>';
@@ -468,11 +510,11 @@ function renderDetail(report, query) {
     previousStart:row.previousDate, previousEnd:row.previousDate, previousClicks:row.previousCount
   }));
   outputFor('detail').innerHTML = coverageMarkup(report, query.compare) +
-    '<div class="panel detail-summary"><span><strong>' + number(report.summary.clicks) + '</strong>有效出站</span><span><strong>' + number(report.summary.targets) + '</strong>个目标</span><span>' + number(report.totalRows) + ' 条每日记录</span><small>合计覆盖全部匹配结果，不随翻页变化</small></div>' +
+    '<div class="panel detail-summary"><span><strong>' + number(report.summary.clicks) + '</strong>有效出站</span><span><strong>' + number(report.summary.targets) + '</strong>项内容</span><span>' + number(report.totalRows) + ' 条每日记录</span><small>合计覆盖全部匹配结果，不随翻页变化</small></div>' +
     '<section class="panel trend-panel"><div class="panel-title"><h2>筛选后的每日趋势</h2></div>' + chartMarkup('detail', series, seriesConfig(false, query.compare), query) + '</section>' +
     '<section class="panel table-panel"><div class="table-scroll"><table><thead><tr>' +
-    sortHeading('日期','date',query) + sortHeading('目标','name',query) + sortHeading('有效点击','clicks',query,true) +
-    '<th class="numeric">同目标对应上期</th>' + sortHeading('增减量','delta',query,true) + sortHeading('变化比例','percent',query,true) +
+    sortHeading('日期','date',query) + sortHeading('具体标题','name',query) + sortHeading('有效点击','clicks',query,true) +
+    '<th class="numeric">同标题对应上期</th>' + sortHeading('增减量','delta',query,true) + sortHeading('变化比例','percent',query,true) +
     '</tr></thead><tbody>' + (rows || '<tr><td colspan="6" class="empty-state">' + (report.coverage?.status === 'none' ? '这个区间暂无采集数据。' : '没有匹配记录，请调整筛选条件。') + '</td></tr>') +
     '</tbody></table></div><div class="pagination"><span>共 ' + number(report.totalRows) + ' 条 · 每页 ' + report.pageSize + ' 条</span><div>' +
     '<button type="button" data-page-change="-1"' + (report.page <= 1 ? ' disabled' : '') + '>上一页</button><span>第 ' + report.page + ' / ' + pages + ' 页</span>' +
@@ -549,7 +591,8 @@ function syncDetailForm() {
   form.elements.sort.value = query.sort;
   form.elements.direction.value = query.direction;
   form.elements.pageSize.value = String(query.pageSize);
-  for (const key of ['categories','topics','targets']) form.querySelectorAll('input[name="' + key + '"]').forEach(input => { input.checked = query[key].includes(input.value); });
+  form.querySelectorAll('input[name="categories"]').forEach(input => { input.checked = query.categories.includes(input.value); });
+  query.targets = refreshTitlePicker(form, query.targets);
   updatePickerLabels(form);
   updateRangeDescription(form, query);
   form.querySelector('.form-dirty').hidden = true;
@@ -559,15 +602,20 @@ function syncDetailForm() {
 function openCardDetail(index, targetId = null) {
   const scope = 'card-' + index;
   let query;
-  try { query = readForm(scope); }
-  catch (error) { formError(scope, error); return; }
-  if (JSON.stringify(query) !== JSON.stringify(queryFor(scope))) query = applyForm(scope);
+  if (targetId) {
+    // A visible TOP row belongs to the applied query, not unsubmitted form edits.
+    query = structuredClone(queryFor(scope));
+  } else {
+    try { query = readForm(scope); }
+    catch (error) { formError(scope, error); return; }
+    if (JSON.stringify(query) !== JSON.stringify(queryFor(scope))) query = applyForm(scope);
+  }
   if (!query) return;
-  state.detail = { ...state.detail, ...structuredClone(query), targets:targetId ? [targetId] : [...query.targets],
-    minClicks:0, includeZero:false, sort:'date', direction:'desc', page:1 };
+  state.detail = { ...state.detail, ...structuredClone(query), targets:targetId ? [targetId] : [], q:'',
+    minClicks:0, includeZero:true, sort:'date', direction:'desc', page:1 };
   delete state.detail.expanded;
-  saveState();
   syncDetailForm();
+  saveState();
   location.hash = 'outbound';
   loadScope('detail');
 }
@@ -579,7 +627,7 @@ function updateRoute() {
   $('overview-page').hidden = page !== 'overview';
   $('outbound-page').hidden = page !== 'outbound';
   $('page-title').textContent = page === 'overview' ? '总览' : '出站明细';
-  $('page-description').textContent = page === 'overview' ? '有多少次有效访问，又分别去了哪些入口。' : '按日期和目标查看有效出站，筛选、比较与逐条核对。';
+  $('page-description').textContent = page === 'overview' ? '有多少次有效访问，又分别去了哪些入口。' : '先选内容类型，再按具体标题和日期查看每日点击。';
   document.querySelectorAll('[data-page]').forEach(link => {
     const active = link.dataset.page === page;
     link.classList.toggle('active', active);
@@ -595,12 +643,16 @@ async function enterApplication() {
   const metadata = await request('/api/session');
   if (metadata?.authenticated !== true || metadata.role !== 'viewer' || !['live','demo'].includes(metadata.mode)) throw new Error('登录状态无法确认，请重新登录。');
   const incoming = await request('/api/catalog');
-  if (!incoming || !Array.isArray(incoming.categories) || !Array.isArray(incoming.topics) || !Array.isArray(incoming.targets)) throw new Error('目标信息暂时无法加载，请稍后重试。');
+  if (!incoming || !Array.isArray(incoming.categories) || !Array.isArray(incoming.targets)) throw new Error('内容标题暂时无法加载，请稍后重试。');
   session = metadata;
-  catalog = incoming;
+  catalog = {
+    categories:incoming.categories,
+    targets:incoming.targets.map(({ id, name, category, channel, canonical, kind }) => ({ id, name, category, channel, canonical, kind }))
+  };
   targetById.clear(); categoryById.clear();
   for (const target of catalog.targets) targetById.set(target.id, target);
   for (const category of catalog.categories) categoryById.set(category.id, category.name);
+  normalizeCatalogSelections();
   $('startup').hidden = true;
   $('login-screen').hidden = true;
   $('application').hidden = false;
