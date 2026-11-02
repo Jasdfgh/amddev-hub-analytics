@@ -8,6 +8,7 @@ import { createCollector } from './collector.mjs';
 import { createReceiptStore } from './receipts.mjs';
 import { createUmamiReader } from './umami-reader.mjs';
 import { parseReportQuery, buildReport, buildDailyReport } from './reporting.mjs';
+import { createTrustedProxy } from './trusted-proxy.mjs';
 
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const publicFiles=new Map([['/','index.html'],['/index.html','index.html'],['/app.js','app.js'],['/dates.js','dates.js'],['/style.css','style.css'],['/favicon.svg','favicon.svg']]);
@@ -15,16 +16,17 @@ const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=u
 const CSP="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 function fail(statusCode,code,message=code){const e=new Error(message);e.statusCode=statusCode;e.code=code;throw e;}
 
-export async function startServer(config=loadConfig()){
+export async function startServer(config=loadConfig(), dependencies={}){
   const baseCatalog=JSON.parse(await fs.readFile(path.join(root,'shared/catalog.json'),'utf8'));
   const rules=JSON.parse(await fs.readFile(path.join(root,'shared/catalog-rules.json'),'utf8'));
-  const reader=createUmamiReader({connectionString:config.readDatabaseUrl,websiteId:config.websiteId,hostname:config.hubHostname});
+  const reader=dependencies.reader||createUmamiReader({connectionString:config.readDatabaseUrl,websiteId:config.websiteId,hostname:config.hubHostname});
   await reader.assertReadOnly();
-  const receipts=createReceiptStore({connectionString:config.receiptDatabaseUrl});
+  const receipts=dependencies.receipts||createReceiptStore({connectionString:config.receiptDatabaseUrl});
   const auth=createViewerAuth({passwordHash:config.passwordHash,sessionSecret:config.sessionSecret,secureCookie:config.secureCookie,username:config.viewerUsername});
   let catalogCache=null,catalogUntil=0;
   const factCache=new Map();
-  const collector=createCollector({config,catalog:baseCatalog,rules,reader,receipts,onAccepted:()=>{catalogUntil=0;factCache.clear();}});
+  const collector=dependencies.collector||createCollector({config,catalog:baseCatalog,rules,reader,receipts,onAccepted:()=>{catalogUntil=0;factCache.clear();}});
+  const proxy=config.proxy?.mode==='hmac-v1'?createTrustedProxy({config,receipts}):null;
   const expectedHost=new URL(config.publicOrigin).host;
   let queryActive=0;
   async function catalog(force=false){
@@ -43,12 +45,17 @@ export async function startServer(config=loadConfig()){
     factCache.set(key,{until:Date.now()+5000,value:promise});
     promise.catch(()=>factCache.delete(key));return promise;
   }
-  async function readJson(request,limit){
+  async function readJson(request,limit,verifiedBody){
     if(!String(request.headers['content-type']||'').toLowerCase().startsWith('application/json'))fail(415,'json_required');
     if(Number(request.headers['content-length']||0)>limit)fail(413,'body_too_large');
-    const chunks=[];let size=0;
-    for await(const chunk of request){size+=chunk.length;if(size>limit)fail(413,'body_too_large');chunks.push(chunk);}
-    try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{fail(400,'invalid_json');}
+    let bytes=verifiedBody;
+    if(bytes===undefined){
+      const chunks=[];let size=0;
+      for await(const chunk of request){size+=chunk.length;if(size>limit)fail(413,'body_too_large');chunks.push(chunk);}
+      bytes=Buffer.concat(chunks);
+    }
+    if(bytes.length>limit)fail(413,'body_too_large');
+    try{return JSON.parse(bytes.toString('utf8'));}catch{fail(400,'invalid_json');}
   }
   const server=http.createServer(async(request,response)=>{
     response.setHeader('Cache-Control','no-store');
@@ -63,9 +70,12 @@ export async function startServer(config=loadConfig()){
     try{
       if(typeof request.url!=='string'||!request.url.startsWith('/')||request.url.startsWith('//'))fail(400,'invalid_request_target');
       const url=new URL(request.url,config.publicOrigin),route=url.pathname;
-      if(route==='/healthz'&&request.method==='GET'){json(200,{status:'ok',mode:config.mode});return;}
-      if(request.headers.host!==expectedHost)fail(421,'host_not_allowed');
-      const origin=request.headers.origin;
+      if(route==='/healthz'&&request.method==='GET'&&(!proxy||request.url==='/healthz')){json(200,{status:'ok',mode:config.mode});return;}
+      const verified=proxy?await proxy.authenticate(request):null;
+      if(!proxy&&request.headers.host!==expectedHost)fail(421,'host_not_allowed');
+      const origin=verified?verified.origin:request.headers.origin;
+      const client=verified?verified.client:clientInfo(request,config);
+      const cookie=verified?verified.cookie:request.headers.cookie;
       if(route==='/api/collect'){
         if(!origin||!config.allowedOrigins.has(origin))fail(403,'origin_not_allowed');
         response.setHeader('Access-Control-Allow-Origin',origin);response.setHeader('Vary','Origin');
@@ -73,25 +83,29 @@ export async function startServer(config=loadConfig()){
           response.writeHead(204,{'Access-Control-Allow-Methods':'POST','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'600'});response.end();return;
         }
         if(request.method!=='POST')fail(405,'method_not_allowed');
-        json(200,await collector.collect(await readJson(request,12288),clientInfo(request,config)));return;
+        json(200,await collector.collect(await readJson(request,12288,verified?.body),client));return;
       }
       if(route.startsWith('/api/')){
         if(origin&&origin!==config.publicOrigin)fail(403,'origin_not_allowed');
         if(route==='/api/login'){
           if(request.method!=='POST')fail(405,'method_not_allowed');
-          const body=await readJson(request,1024);
+          const body=await readJson(request,1024,verified?.body);
           if(!body||Array.isArray(body)||Object.keys(body).some(k=>k!=='password'))fail(400,'invalid_fields');
-          const logged=await auth.login({password:body.password,clientKey:clientInfo(request,config).ip});
+          const logged=await auth.login({password:body.password,clientKey:client.ip});
           response.setHeader('Set-Cookie',logged.cookie);
           json(200,{...logged.session,mode:config.mode,collection:{startedAt:config.collectionStartedAt,timezone:'Asia/Shanghai'}});return;
         }
-        const session=auth.authenticate(request.headers.cookie);
+        const session=auth.authenticate(cookie);
         if(!session){json(401,{authenticated:false,login:{username:auth.username}});return;}
         if(route==='/api/session'&&request.method==='GET'){
           json(200,{...session,mode:config.mode,collection:{startedAt:config.collectionStartedAt,timezone:'Asia/Shanghai'}});return;
         }
         if(route==='/api/logout'&&request.method==='POST'){
-          response.setHeader('Set-Cookie',auth.logout(request.headers.cookie));json(200,{authenticated:false});return;
+          if(verified?.body.length){
+            const body=await readJson(request,1024,verified.body);
+            if(!body||Array.isArray(body)||Object.keys(body).length)fail(400,'invalid_fields');
+          }
+          response.setHeader('Set-Cookie',auth.logout(cookie));json(200,{authenticated:false});return;
         }
         // There is deliberately no generic Umami API proxy or write operation.
         if(request.method!=='GET')fail(403,'read_only');

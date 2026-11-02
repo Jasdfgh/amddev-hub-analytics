@@ -1,4 +1,5 @@
 import net from 'node:net';
+import { validProxyKey } from '../shared/proxy-protocol.mjs';
 
 export function normalizeIp(value = '') {
   const ip = String(value).replace(/^::ffff:/, '');
@@ -23,6 +24,32 @@ function origin(value, allowIntranetHttp) {
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && (loopback || allowIntranetHttp && isPrivateIp(url.hostname)))) throw new Error('HTTP is restricted to explicitly enabled intranet or loopback trial origins.');
   return url.origin;
 }
+function proxyConfig(env, publicOrigin, allowedOrigins) {
+  const mode = env.PROXY_MODE || 'direct';
+  if (!['direct', 'hmac-v1'].includes(mode)) throw new Error('Invalid PROXY_MODE.');
+  if (mode === 'direct') {
+    if (env.PROXY_HMAC_KEYS || env.PROXY_HUB_ORIGIN) throw new Error('Proxy settings require explicit PROXY_MODE=hmac-v1.');
+    return { mode };
+  }
+  const hubOrigin = origin(required(env, 'PROXY_HUB_ORIGIN'), false);
+  const hub = new URL(hubOrigin), viewer = new URL(publicOrigin);
+  if (hub.protocol !== 'https:' || viewer.protocol !== 'https:' || hub.port || viewer.port || hub.host === viewer.host) throw new Error('Proxy mode requires distinct HTTPS Hub and viewer hosts.');
+  if (env.TRUSTED_PROXY_IPS?.trim()) throw new Error('Proxy mode must not trust X-Forwarded-For.');
+  if (allowedOrigins.size !== 1 || !allowedOrigins.has(hubOrigin)) throw new Error('Proxy collection origin must equal the configured Hub origin.');
+  let supplied;
+  try { supplied = JSON.parse(required(env, 'PROXY_HMAC_KEYS')); }
+  catch { throw new Error('Invalid PROXY_HMAC_KEYS JSON.'); }
+  if (!supplied || typeof supplied !== 'object' || Array.isArray(supplied) || Object.keys(supplied).length < 2 || Object.keys(supplied).length > 4) throw new Error('Configure two to four scoped proxy keys.');
+  const keys = Object.create(null), scopes = new Set(), values = new Set();
+  for (const [id, entry] of Object.entries(supplied)) {
+    if (!/^[A-Za-z0-9_-]{1,32}$/.test(id) || !entry || typeof entry !== 'object' || Array.isArray(entry) ||
+        Object.keys(entry).sort().join(',') !== 'key,scope' || !['collect', 'dashboard'].includes(entry.scope) || !validProxyKey(entry.key) || values.has(entry.key)) throw new Error('Invalid or duplicated scoped proxy key.');
+    keys[id] = { key: entry.key, scope: entry.scope };
+    values.add(entry.key); scopes.add(entry.scope);
+  }
+  if (scopes.size !== 2) throw new Error('Both collect and dashboard proxy keys are required.');
+  return { mode, keys, hubOrigin, hubHost: hub.host, viewerHost: viewer.host };
+}
 export function loadConfig(env = process.env) {
   const allowIntranetHttp = env.ALLOW_INTRANET_HTTP === 'true';
   const publicOrigin = origin(required(env,'PUBLIC_ORIGIN'),allowIntranetHttp);
@@ -35,6 +62,7 @@ export function loadConfig(env = process.env) {
   const startedAt = required(env,'COLLECTION_STARTED_AT');
   if (!Number.isFinite(Date.parse(startedAt))) throw new Error('Invalid COLLECTION_STARTED_AT.');
   const allowedOrigins = new Set((env.ALLOWED_COLLECT_ORIGINS || 'https://hub.amddev.ai').split(',').filter(Boolean).map(value=>origin(value.trim(),allowIntranetHttp)));
+  const proxy = proxyConfig(env, publicOrigin, allowedOrigins);
   return {
     publicOrigin, port, host: env.HOST || '127.0.0.1', mode,
     allowIntranetHttp, secureCookie: publicOrigin.startsWith('https:'),
@@ -45,7 +73,7 @@ export function loadConfig(env = process.env) {
     umamiAppSecret: required(env,'UMAMI_APP_SECRET'), tokenSecret: required(env,'COLLECTOR_TOKEN_SECRET'),
     passwordHash: required(env,'VIEWER_PASSWORD_HASH'), sessionSecret: required(env,'VIEWER_SESSION_SECRET'),
     viewerUsername: env.VIEWER_USERNAME || 'hub-viewer', collectionStartedAt: startedAt,
-    hubHostname: env.HUB_HOSTNAME || 'hub.amddev.ai'
+    hubHostname: env.HUB_HOSTNAME || 'hub.amddev.ai', proxy
   };
 }
 export function clientInfo(request, config) {

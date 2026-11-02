@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
   "generator": "hub-analytics-public-export-v1",
-  "generatedAt": "2026-11-02T03:03:48.127Z",
+  "generatedAt": "2026-11-02T10:40:26.836Z",
   "reviewStatus": "exported-for-publication-review",
-  "contentSha256": "fc07d97e50ec585b283fdbfeeb4cc52415d701957e924e3ac8f2007164c9bcc7",
-  "fileCount": 23,
+  "contentSha256": "5124036583fecb04b9874cdbbc43a7f7b5255b33a83051b3f4ffbf8215d80cd4",
+  "fileCount": 25,
   "files": [
     {
       "path": ".dockerignore",
-      "bytes": 420,
-      "sha256": "797e2f33965dd94915599c761f07814043a0f65715e4795e9ed7b5fd1fd520f0"
+      "bytes": 447,
+      "sha256": "dce4d79121b3fc822a716741b9d87c885530546dcc159c548a12d25f3a0cc96e"
     },
     {
       "path": ".env.example",
-      "bytes": 1435,
-      "sha256": "f3e5d5c1dca28ab38f03fd8baace55bd994d7baed9100117054f4006ce484de3"
+      "bytes": 1871,
+      "sha256": "9f63f190d873f52b1ef055184865e35c8fb3046751af610d708c8d802fe27573"
     },
     {
       "path": ".gitignore",
@@ -23,8 +23,8 @@
     },
     {
       "path": "Dockerfile",
-      "bytes": 1092,
-      "sha256": "7210f6970bf97a7367fcb3fb62838697aad8b04339a24464c906e6346b71214b"
+      "bytes": 1248,
+      "sha256": "5251747d1f84f156d59d74a4ce71895e6c0d46667ccb1c34f19eb73d66f88259"
     },
     {
       "path": "LICENSE",
@@ -68,8 +68,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 8376,
-      "sha256": "29f45334c9d4d8d51c37f8d4b6732b97665cd8e80e5616c8eabcd73e5575ee23"
+      "bytes": 9709,
+      "sha256": "1312d864f3441fdb92d58fee1b2dd2b166669be87faefcdc6cf43775f2277737"
     },
     {
       "path": "server/auth.mjs",
@@ -83,23 +83,28 @@
     },
     {
       "path": "server/config.mjs",
-      "bytes": 3654,
-      "sha256": "34ef89a8611bf2cb24cc5b5d9e97769ebd30b31e4e155e89ef0cbdf11b4890c9"
+      "bytes": 5842,
+      "sha256": "3292aae49c8e7510df651bb2348098614cbb9fcffa99e0a88818ca672bb6c8e3"
     },
     {
       "path": "server/index.mjs",
-      "bytes": 9808,
-      "sha256": "89ee24ca77302b83550bfc697da3d687cc52778c318c116daec079ce89b2bc10"
+      "bytes": 10637,
+      "sha256": "a16056c58fbbf57d1b3523a734715d68c8fa794ca269f3778fbdd9ea631cd6b1"
     },
     {
       "path": "server/receipts.mjs",
-      "bytes": 9652,
-      "sha256": "2396c35ca0b6f1e4d5b73f75fdc54c3870dc4a1edfd00e4709e179448718d2e6"
+      "bytes": 10367,
+      "sha256": "b4bcb8c8eb7a4c2e3f6cce87e41c99fd0cc65845cec688b7cc5cdf42356370f6"
     },
     {
       "path": "server/reporting.mjs",
       "bytes": 14319,
       "sha256": "2178e401afc23567d9d86ccbb0757bb1f97bc3eec240dc2c4fbaa395b638cf6c"
+    },
+    {
+      "path": "server/trusted-proxy.mjs",
+      "bytes": 5540,
+      "sha256": "edb32b83093b43f315d61005d7e651471bb8fd20ae7e8d396e0eab8d9a1bd476"
     },
     {
       "path": "server/umami-reader.mjs",
@@ -120,6 +125,11 @@
       "path": "shared/link-map.mjs",
       "bytes": 8867,
       "sha256": "c56b08c5ecc447e48d05e59cafd4d3f7821f99bf184e724cd0e1801bd8024684"
+    },
+    {
+      "path": "shared/proxy-protocol.mjs",
+      "bytes": 8673,
+      "sha256": "0a1e78975e127ffe8317a069421cb6422473eaef27d1507be700f5e06a56962c"
     }
   ],
   "checks": {

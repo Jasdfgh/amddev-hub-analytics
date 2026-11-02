@@ -18,13 +18,13 @@ ghcr.io/umami-software/umami@sha256:f2c645cc5cdff76e7fbfe4c7eeabc7e363840bd34364
 
 This pins the Linux amd64 Umami 3.4.1 image. For another architecture, independently verify and select the corresponding official manifest. The Node application image uses a separately pinned public Node 24 image; no private registry credentials are required to read either public image.
 
-Keep Umami and PostgreSQL on internal networking. The collection adapter calls Umami internally. Do not publish Umami's management UI or its unrestricted collection endpoint as a shortcut.
+Keep Umami on internal networking. The collection adapter calls Umami internally. A hosted PostgreSQL endpoint must require verified TLS and scoped credentials. Do not publish Umami's management UI or its unrestricted collection endpoint as a shortcut.
 
 **The current application serves both a password-protected viewer and the public collection adapter on the same port.** Hosting the whole application publicly is supported: reporting queries require a valid viewer session. Password protection restricts access to report data; it does not make the application network-private. If network-level isolation is required, make this service port private, which also makes its collection endpoint private. A separate public collector would then need a later implementation. This snapshot has no collector-only switch.
 
-## Northflank secrets: where to enter real values
+## Runtime secrets
 
-In the project, create a **Secret Group**. Choose **Runtime variables only** (sometimes displayed as Runtime Only), enter values in the key/value or ENV editor, and use **Advanced / linked services** to restrict inheritance to the intended service. Secret groups can otherwise be inherited by all services and jobs in a project. Do not select build arguments or the combined build/runtime type for these credentials.
+Use the hosting platform's runtime secret facility and attach each secret only to its intended service/container. For Cloud Run, the prepared topology is one ingress gateway plus an internal Umami sidecar, with separate Secret Manager dotenv mounts and a hosted Neon database. Keep numeric secret versions pinned. Containers in one Cloud Run service share its service account, so separate mounts do not constitute separate IAM identities.
 
 | Runtime group | Attach only to | Values |
 |---|---|---|
@@ -33,11 +33,21 @@ In the project, create a **Secret Group**. Choose **Runtime variables only** (so
 
 The application's `UMAMI_APP_SECRET` must equal the internal Umami service's `APP_SECRET`; store the values privately in the two scoped runtime groups. Leave `DISABLE_BOT_CHECK` unset. Never put real values into the Dockerfile, Docker build arguments, GitHub source, issues, screenshots, or build output. Service-level variables override same-name inherited values, so inspect both places when troubleshooting.
 
-Official references: [Inject secrets](https://northflank.com/docs/v1/application/secure/inject-secrets), [Manage secret groups](https://northflank.com/docs/v1/application/secure/manage-secret-groups), and [runtime variables](https://northflank.com/docs/v1/application/run/inject-runtime-variables).
+Official reference: [Cloud Run secrets](https://docs.cloud.google.com/run/docs/configuring/services/secrets).
 
 The Docker build installs only locked production dependencies and explicitly copies runtime files. It does not require a database or any application secret. `.env.example` contains placeholders and is not a working configuration.
 
+If the build network uses a private certificate authority, pass its CA bundle as the optional BuildKit secret `npm_ca`. It is mounted only during dependency installation and is not copied into the runtime image. Certificate verification stays enabled. Ordinary builds do not require this input.
+
 For cloud database connections, use `sslmode=verify-full` and the provider's actual database hostname. If the provider uses a private certificate authority, mount the CA certificate as a runtime secret file and configure the PostgreSQL client's CA trust. Keep certificate and hostname verification enabled; do not work around connection errors by disabling TLS verification. Private networking and database credentials remain separate controls.
+
+## Signed edge entry
+
+The public Hub uses a same-origin collection route; a separate stats site serves the viewer shell and proxies only its named APIs. Set `PROXY_MODE=hmac-v1` on the upstream gateway to require the shared HMAC protocol. Configure independent `collect` and `dashboard` keys in `PROXY_HMAC_KEYS`, the exact viewer `PUBLIC_ORIGIN`, and `PROXY_HUB_ORIGIN`. These are runtime secrets; the browser receives neither signing key.
+
+Signatures bind the method, path/query, body, timestamp, nonce, platform-supplied client IP, public host and authentication-relevant headers. Validated nonces are consumed in persistent receipt storage. The edge function must use the platform request context for the client IP, never a caller-supplied forwarding header. Direct/intranet deployments retain their existing mode; switching to signed mode is explicit.
+
+Validate the actual edge environment, header preservation, login cookies, replay rejection, cold starts and database permissions before public collection. Local unit checks do not prove those provider behaviors. The five-file viewer shell is public, while analytics data requires the server-side viewer session.
 
 ## Initialize privately before public access
 

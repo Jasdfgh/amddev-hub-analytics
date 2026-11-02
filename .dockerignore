@@ -13,6 +13,7 @@
 !shared/catalog.json
 !shared/catalog-rules.json
 !shared/link-map.mjs
+!shared/proxy-protocol.mjs
 
 # Defense in depth if an unexpected file appears inside an allowed directory.
 **/.git

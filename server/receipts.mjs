@@ -15,6 +15,12 @@ const PRUNE_EXPIRED = 'WITH expired AS (' +
   'ORDER BY expires_at, event_id LIMIT $2::integer FOR UPDATE SKIP LOCKED' +
   ') DELETE FROM hub.collect_receipt AS receipt USING expired ' +
   'WHERE receipt.event_id = expired.event_id RETURNING receipt.event_id';
+const PRUNE_PROXY_NONCES = 'WITH expired AS (' +
+  'SELECT event_id FROM hub.collect_receipt WHERE expires_at <= $1::timestamptz ' +
+  "AND owner_hash LIKE 'proxy-nonce:v1:%' AND identity_id = 'proxy-nonce:v1' " +
+  'ORDER BY expires_at, event_id LIMIT $2::integer FOR UPDATE SKIP LOCKED' +
+  ') DELETE FROM hub.collect_receipt AS receipt USING expired ' +
+  'WHERE receipt.event_id = expired.event_id RETURNING receipt.event_id';
 const PRIVILEGES = [
   'SELECT',
   '(SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls',
@@ -203,6 +209,13 @@ export function createReceiptStore({ connectionString, now = () => Date.now() } 
       if (!Number.isSafeInteger(limit) || limit < 0 || limit > 10000) throw invalid();
       if (limit === 0) return 0;
       const result = await query(PRUNE_EXPIRED, [clock().toISOString(), limit]);
+      return result.rowCount;
+    },
+
+    async pruneProxyNonces(limit = 50) {
+      if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1000) throw invalid();
+      if (limit === 0) return 0;
+      const result = await query(PRUNE_PROXY_NONCES, [clock().toISOString(), limit]);
       return result.rowCount;
     },
 
