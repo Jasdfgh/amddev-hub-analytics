@@ -109,7 +109,8 @@ async function request(path, { body, signal } = {}) {
   const cancel = () => controller.abort();
   if (signal?.aborted) controller.abort();
   signal?.addEventListener('abort', cancel, { once:true });
-  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 30000);
+  // Allow the backend and database to wake together, while keeping a bounded wait.
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 60000);
   try {
     const response = await fetch(path, {
       method:body === undefined ? 'GET' : 'POST',
